@@ -1,115 +1,117 @@
 import streamlit as st
-import random
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-st.set_page_config(page_title="📊 Interactive Stats Tutor", layout="wide")
-st.title("📊 Interactive Statistics Tutor")
+# -------------------
+# Page Config
+# -------------------
+st.set_page_config(page_title="Stats Playground", layout="wide")
 
-# User input
-concept = st.text_input("Paste a concept (e.g., mean, median, probability, normal distribution):")
+# -------------------
+# Sidebar Navigation
+# -------------------
+st.sidebar.title("📊 Stats Playground")
+topic = st.sidebar.selectbox(
+    "Choose a topic",
+    ["Mean & Median", "Probability Basics", "Distributions", "Custom Lesson"]
+)
 
-# ------------------ PROBABILITY ------------------
-def probability_demo():
-    st.subheader("🎲 Probability Playground")
-    red_count = st.slider("Number of Red Balls", 1, 10, 3)
-    blue_count = st.slider("Number of Blue Balls", 1, 10, 2)
+dark_mode = st.sidebar.checkbox("🌙 Dark Mode", value=False)
 
-    if "red_picked" not in st.session_state:
-        st.session_state.red_picked = 0
-        st.session_state.blue_picked = 0
-        st.session_state.total = 0
+# Apply dark mode style
+if dark_mode:
+    st.markdown(
+        """
+        <style>
+        body {
+            background-color: #1E1E1E;
+            color: white;
+        }
+        .stPlotlyChart {
+            background-color: #1E1E1E;
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
 
-    if st.button("Pick a Ball 🎯"):
-        jar = ["Red"] * red_count + ["Blue"] * blue_count
-        choice = random.choice(jar)
-        st.session_state.total += 1
-        if choice == "Red":
-            st.session_state.red_picked += 1
-        else:
-            st.session_state.blue_picked += 1
-        st.success(f"You picked a {choice} ball!")
+# -------------------
+# Topic 1: Mean & Median
+# -------------------
+if topic == "Mean & Median":
+    st.header("📍 Understanding Mean & Median")
+    st.write("Example: Exam scores of 10 students")
 
-    total_balls = red_count + blue_count
-    st.write(f"**Theoretical Probability:** Red = {red_count}/{total_balls}, Blue = {blue_count}/{total_balls}")
+    scores = [45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+    mean_val = np.mean(scores)
+    median_val = np.median(scores)
 
-    if st.session_state.total > 0:
-        red_prob = st.session_state.red_picked / st.session_state.total
-        blue_prob = st.session_state.blue_picked / st.session_state.total
-        st.write(f"**Experimental Probability:** Red = {red_prob:.2f}, Blue = {blue_prob:.2f}")
+    st.write(f"Mean: {mean_val}, Median: {median_val}")
 
-        fig, ax = plt.subplots()
-        ax.bar(["Red", "Blue"], [st.session_state.red_picked, st.session_state.blue_picked], color=["red", "blue"])
-        ax.set_ylabel("Times Picked")
-        st.pyplot(fig)
-
-# ------------------ MEAN & MEDIAN ------------------
-def mean_median_demo():
-    st.subheader("📏 Mean & Median Playground")
-    numbers = st.text_input("Enter numbers separated by commas:", "2, 4, 6, 8")
-    try:
-        nums = [float(x.strip()) for x in numbers.split(",")]
-        mean = np.mean(nums)
-        median = np.median(nums)
-
-        st.write(f"**Mean:** {mean:.2f}")
-        st.write(f"**Median:** {median:.2f}")
-
-        fig, ax = plt.subplots()
-        ax.bar(range(len(nums)), nums, color="skyblue")
-        ax.axhline(mean, color="red", linestyle="--", label=f"Mean = {mean:.2f}")
-        ax.axhline(median, color="green", linestyle=":", label=f"Median = {median:.2f}")
-        ax.legend()
-        st.pyplot(fig)
-    except:
-        st.warning("Please enter valid numbers.")
-
-# ------------------ NORMAL DISTRIBUTION ------------------
-def normal_dist_demo():
-    st.subheader("📈 Normal Distribution Playground")
-    mean = st.slider("Mean (μ)", -5.0, 5.0, 0.0)
-    stddev = st.slider("Standard Deviation (σ)", 0.1, 5.0, 1.0)
-
-    x = np.linspace(-10, 10, 400)
-    y = (1 / (stddev * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / stddev) ** 2)
-
-    fig, ax = plt.subplots()
-    ax.plot(x, y, color="blue")
-    ax.axvline(mean, color="red", linestyle="--", label="Mean")
-    ax.set_title("Normal Distribution Curve")
+    fig, ax = plt.subplots(figsize=(6,3))
+    ax.hist(scores, bins=5, color="skyblue", edgecolor="black")
+    ax.axvline(mean_val, color='red', linestyle='--', label=f"Mean = {mean_val}")
+    ax.axvline(median_val, color='green', linestyle='-', label=f"Median = {median_val}")
     ax.legend()
     st.pyplot(fig)
 
-# ------------------ REGRESSION ------------------
-def regression_demo():
-    st.subheader("📉 Regression Playground")
-    n_points = st.slider("Number of Data Points", 10, 200, 50)
-    noise = st.slider("Noise Level", 0.0, 2.0, 0.5)
+    # MCQ
+    st.subheader("📝 Quick Quiz")
+    q1 = st.radio("If a new student scores 100, which measure changes more?", 
+                  ["Mean", "Median"])
+    if q1 == "Mean":
+        st.success("✅ Correct! Mean is sensitive to outliers.")
+    elif q1 == "Median":
+        st.error("❌ Median is less affected by outliers.")
 
-    x = np.linspace(0, 10, n_points)
-    y = 2 * x + 3 + np.random.normal(0, noise, n_points)
+# -------------------
+# Topic 2: Probability
+# -------------------
+elif topic == "Probability Basics":
+    st.header("🎲 Probability Basics")
+    st.write("Example: Tossing a fair coin")
 
-    coeffs = np.polyfit(x, y, 1)
-    y_pred = np.polyval(coeffs, x)
+    outcomes = ["Head", "Tail"]
+    st.write("Outcomes:", outcomes)
 
-    st.write(f"**Regression Line Equation:** y = {coeffs[0]:.2f}x + {coeffs[1]:.2f}")
+    st.latex(r"P(\text{Head}) = \frac{1}{2}, \; P(\text{Tail}) = \frac{1}{2}")
 
-    fig, ax = plt.subplots()
-    ax.scatter(x, y, color="blue", alpha=0.6, label="Data")
-    ax.plot(x, y_pred, color="red", label="Regression Line")
-    ax.legend()
+    flips = np.random.choice(outcomes, size=50)
+    head_count = np.sum(flips == "Head")
+    tail_count = 50 - head_count
+
+    fig, ax = plt.subplots(figsize=(4,3))
+    ax.bar(["Head", "Tail"], [head_count, tail_count], color=["orange", "blue"])
     st.pyplot(fig)
 
-# ------------------ ROUTER ------------------
-if concept:
-    c = concept.lower()
-    if "prob" in c:
-        probability_demo()
-    elif "mean" in c or "median" in c:
-        mean_median_demo()
-    elif "normal" in c or "distribution" in c:
-        normal_dist_demo()
-    elif "regression" in c:
-        regression_demo()
+    # MCQ
+    q2 = st.radio("If we toss 1 coin, what’s the probability of getting Tail?",
+                  ["0.25", "0.5", "1"])
+    if q2 == "0.5":
+        st.success("✅ Correct! A fair coin has equal chance.")
     else:
-        st.info("Concept not found. Try: probability, mean, median, normal distribution, regression")
+        st.error("❌ Try again.")
+
+# -------------------
+# Topic 3: Distributions
+# -------------------
+elif topic == "Distributions":
+    st.header("📈 Normal Distribution")
+    st.write("Example: Heights of students in cm")
+
+    data = np.random.normal(170, 10, 200)
+    fig, ax = plt.subplots(figsize=(6,3))
+    ax.hist(data, bins=20, color="purple", edgecolor="white", density=True)
+    st.pyplot(fig)
+
+    st.write("Most values cluster around the mean (170 cm).")
+
+# -------------------
+# Topic 4: Custom Content
+# -------------------
+elif topic == "Custom Lesson":
+    st.header("✍️ Paste Your Own Content")
+    user_content = st.text_area("Paste your explanation, notes, or example here:")
+    if user_content:
+        st.write("### Your Lesson")
+        st.write(user_content)
+        st.info("👉 Future: AI can turn this into interactive graphs & quizzes automatically!")
